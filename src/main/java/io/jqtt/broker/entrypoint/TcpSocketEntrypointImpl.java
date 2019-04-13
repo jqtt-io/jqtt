@@ -24,6 +24,7 @@
 
 package io.jqtt.broker.entrypoint;
 
+import io.jqtt.broker.handler.MqttServerHandler;
 import io.jqtt.exception.JqttExcepion;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -60,15 +61,16 @@ public class TcpSocketEntrypointImpl implements Entrypoint {
                   final ChannelPipeline pipeline = ch.pipeline();
 
                   pipeline.addFirst("idleHandler", new IdleStateHandler(0, 0, 2000));
-                  // pipeline.addLast("encoder", new MqttDecoder());
-                  // pipeline.addLast("decoder", MqttEncoder.INSTANCE);
+                  pipeline.addLast("encoder", new MqttDecoder());
+                  pipeline.addLast("decoder", MqttEncoder.INSTANCE);
+                  pipeline.addLast(new MqttServerHandler());
                 }
               });
 
       final ChannelFuture startServerFuture = serverBootstrap.bind(9000).sync();
       startServerFuture.channel().closeFuture().sync();
     } catch (Exception e) {
-      throw new JqttExcepion("dupa", e);
+      throw new JqttExcepion("Exception during bootstrapping error server", e);
     } finally {
       bossGroup.shutdownGracefully();
       workerGroup.shutdownGracefully();

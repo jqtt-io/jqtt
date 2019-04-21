@@ -41,6 +41,10 @@ dependencies {
     implementation("io.scalecube:config:$scaleCubeConfigVersion")
     implementation("org.cfg4j:cfg4j-core:4.4.1")
 
+    implementation("com.hivemq:hivemq-mqtt-client:1.0.0")
+    implementation("com.google.guava:guava:27.1-jre")
+    implementation("commons-codec:commons-codec:1.8")
+
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     testCompileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")

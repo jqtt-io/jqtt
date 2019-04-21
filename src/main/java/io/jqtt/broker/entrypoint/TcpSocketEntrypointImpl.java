@@ -25,6 +25,7 @@
 package io.jqtt.broker.entrypoint;
 
 import io.jqtt.broker.handler.MqttServerHandler;
+import io.jqtt.broker.protocol.message.MessageHandlerFactory;
 import io.jqtt.exception.JqttExcepion;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -36,13 +37,15 @@ import io.netty.handler.codec.mqtt.*;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class TcpSocketEntrypointImpl implements Entrypoint {
 
   @Override
-  public void start() throws JqttExcepion {
+  public void start(final @NonNull MessageHandlerFactory messageHandlerFactory)
+      throws JqttExcepion {
     final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     final EventLoopGroup workerGroup = new NioEventLoopGroup();
     final EventLoopGroup handlerGroup = new NioEventLoopGroup();
@@ -63,7 +66,7 @@ public class TcpSocketEntrypointImpl implements Entrypoint {
                   pipeline.addFirst("idleHandler", new IdleStateHandler(0, 0, 2000));
                   pipeline.addLast("encoder", new MqttDecoder());
                   pipeline.addLast("decoder", MqttEncoder.INSTANCE);
-                  pipeline.addLast(new MqttServerHandler());
+                  pipeline.addLast(new MqttServerHandler(messageHandlerFactory));
                 }
               });
 

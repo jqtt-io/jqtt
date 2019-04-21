@@ -29,18 +29,19 @@ import io.jqtt.broker.protocol.message.MessageHandlerFactory;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttMessage;
+import lombok.NonNull;
 
 public class MqttServerHandler extends ChannelInboundHandlerAdapter {
 
   private final MessageHandler connectMessageHandler;
 
-  public MqttServerHandler() {
-    this.connectMessageHandler = MessageHandlerFactory.fromMessage("CONNECT");
+  public MqttServerHandler(final @NonNull MessageHandlerFactory messageHandlerFactory) {
+    this.connectMessageHandler = messageHandlerFactory.fromMessage("CONNECT");
   }
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
-    MqttMessage message = (MqttMessage) msg;
+    final MqttMessage message = (MqttMessage) msg;
 
     switch (message.fixedHeader().messageType()) {
       case CONNECT:

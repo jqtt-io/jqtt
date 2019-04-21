@@ -39,6 +39,21 @@ public class ConfigurationImpl implements Configuration {
     return getProperty(Configuration.NODE_NAME, String.class);
   }
 
+  @Override
+  public String getAuthenticatorClass() {
+    return getProperty(Configuration.AUTHENTICATOR_CLASS, String.class);
+  }
+
+  @Override
+  public Boolean getAllowAnonymous() {
+    return getProperty(Configuration.ALLOW_ANONYMOUS, Boolean.class);
+  }
+
+  @Override
+  public String getAuthenticatorFilePath() {
+    return getProperty(Configuration.AUTHENTICATOR_FILE_PATH, String.class);
+  }
+
   private <T> T getProperty(String propertyName, Class<T> type) {
     return provider.getProperty(propertyName, type);
   }

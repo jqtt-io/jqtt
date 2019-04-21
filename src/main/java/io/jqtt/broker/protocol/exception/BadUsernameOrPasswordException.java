@@ -22,12 +22,13 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.entrypoint;
+package io.jqtt.broker.protocol.exception;
 
-import io.jqtt.broker.protocol.message.MessageHandlerFactory;
 import io.jqtt.exception.JqttExcepion;
-import lombok.NonNull;
 
-public interface Entrypoint {
-  void start(final @NonNull MessageHandlerFactory messageHandlerFactory) throws JqttExcepion;
+public class BadUsernameOrPasswordException extends JqttExcepion {
+  public static BadUsernameOrPasswordException of() {
+
+    return new BadUsernameOrPasswordException();
+  }
 }

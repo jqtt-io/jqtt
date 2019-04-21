@@ -22,12 +22,14 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.entrypoint;
+package io.jqtt.broker.protocol.authenticator.impl;
 
-import io.jqtt.broker.protocol.message.MessageHandlerFactory;
-import io.jqtt.exception.JqttExcepion;
+import io.jqtt.broker.protocol.authenticator.Authenticator;
+import io.jqtt.broker.protocol.model.ClientId;
 import lombok.NonNull;
 
-public interface Entrypoint {
-  void start(final @NonNull MessageHandlerFactory messageHandlerFactory) throws JqttExcepion;
+public class DbAuthenticator implements Authenticator {
+    @Override public Boolean authenticate(@NonNull ClientId clientId, @NonNull String username, @NonNull byte[] password) {
+        return null;
+    }
 }

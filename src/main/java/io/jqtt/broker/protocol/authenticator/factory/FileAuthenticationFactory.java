@@ -22,12 +22,28 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.entrypoint;
+package io.jqtt.broker.protocol.authenticator.factory;
 
-import io.jqtt.broker.protocol.message.MessageHandlerFactory;
-import io.jqtt.exception.JqttExcepion;
-import lombok.NonNull;
+import io.jqtt.broker.protocol.authenticator.Authenticator;
+import io.jqtt.broker.protocol.authenticator.AuthenticatorFactory;
+import io.jqtt.broker.protocol.authenticator.impl.ResourceAuthenticator;
+import io.jqtt.configuration.Configuration;
 
-public interface Entrypoint {
-  void start(final @NonNull MessageHandlerFactory messageHandlerFactory) throws JqttExcepion;
+public class FileAuthenticationFactory implements AuthenticatorFactory {
+
+  private final Configuration configuration;
+
+  public FileAuthenticationFactory(Configuration configuration) {
+    this.configuration = configuration;
+  }
+
+  @Override
+  public Configuration configuration() {
+    return configuration;
+  }
+
+  @Override
+  public Authenticator create() {
+    return new ResourceAuthenticator(configuration.getAuthenticatorFilePath());
+  }
 }

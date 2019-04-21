@@ -26,6 +26,15 @@ package io.jqtt.configuration;
 
 public interface Configuration {
   public static final String NODE_NAME = "jqtt.node.name";
+  public static final String AUTHENTICATOR_CLASS = "jqtt.authenticator.class";
+  public static final String ALLOW_ANONYMOUS = "jqtt.authenticator.allow_anonymous";
+  public static final String AUTHENTICATOR_FILE_PATH = "jqtt.authenticator.file.path";
 
   String getNodeName();
+
+  String getAuthenticatorClass();
+
+  Boolean getAllowAnonymous();
+
+  String getAuthenticatorFilePath();
 }

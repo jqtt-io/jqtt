@@ -24,31 +24,78 @@
 
 package io.jqtt.broker.protocol.message.impl;
 
+import io.jqtt.broker.protocol.authenticator.Authenticator;
+import io.jqtt.broker.protocol.authenticator.AuthenticatorExecutor;
+import io.jqtt.broker.protocol.exception.BadUsernameOrPasswordException;
+import io.jqtt.broker.protocol.exception.IdentifierRejectionException;
+import io.jqtt.broker.protocol.exception.UnacceptableProtocolVersionException;
 import io.jqtt.broker.protocol.message.MessageHandler;
+import io.jqtt.broker.protocol.model.ClientId;
+import io.jqtt.configuration.Configuration;
+import io.jqtt.exception.JqttExcepion;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.*;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
-public class ConnectMessageHandler implements MessageHandler {
+@Slf4j
+public final class ConnectMessageHandler implements MessageHandler {
+
+  private final AuthenticatorExecutor authenticatorExecutor;
+
+  public ConnectMessageHandler(
+      final @NonNull Authenticator authenticator, final @NonNull Configuration configuration) {
+    this.authenticatorExecutor =
+        new AuthenticatorExecutor(authenticator, configuration.getAllowAnonymous());
+  }
 
   @Override
-  public MqttMessage handle(MqttMessage message, ChannelHandlerContext ctx) {
+  public MqttMessage handle(
+      final @NonNull MqttMessage message, final @NonNull ChannelHandlerContext ctx) {
     final MqttConnectMessage mqttConnectMessage = (MqttConnectMessage) message;
 
-    if (mqttConnectMessage.decoderResult().isSuccess()) {
+    try {
       return processConnection(mqttConnectMessage, ctx);
+    } catch (UnacceptableProtocolVersionException e) {
+      return abortConnection(
+          MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);
+    } catch (IdentifierRejectionException ex) {
+      return abortConnection(MqttConnectReturnCode.CONNECTION_REFUSED_IDENTIFIER_REJECTED);
+    } catch (BadUsernameOrPasswordException e) {
+      return abortConnection(MqttConnectReturnCode.CONNECTION_REFUSED_BAD_USER_NAME_OR_PASSWORD);
+    } catch (JqttExcepion e) {
+      log.error("Exception during CONNECT to broker", e);
     }
 
-    return null;
+    return abortConnection(MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);
   }
 
   private MqttMessage processConnection(
-      MqttConnectMessage mqttConnectMessage, ChannelHandlerContext ctx) {
-    final MqttConnectVariableHeader mqttConnectVariableHeader = mqttConnectMessage.variableHeader();
-    final MqttConnectPayload payload = mqttConnectMessage.payload();
+      final @NonNull MqttConnectMessage mqttConnectMessage,
+      final @NonNull ChannelHandlerContext ctx)
+      throws JqttExcepion {
+    if (mqttConnectMessage.decoderResult().isFailure()) {
+      throw UnacceptableProtocolVersionException.of();
+    }
 
     if (this.checkProtocolVersion(mqttConnectMessage)) {
-      return abortConnection(
-          MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);
+      throw UnacceptableProtocolVersionException.of();
+    }
+
+    final MqttConnectVariableHeader mqttConnectVariableHeader = mqttConnectMessage.variableHeader();
+    final MqttConnectPayload payload = mqttConnectMessage.payload();
+    final ClientId clientId = ClientId.create(payload.clientIdentifier());
+
+    if (clientId.isNotPresent() && !mqttConnectVariableHeader.isCleanSession()) {
+      throw IdentifierRejectionException.of();
+    }
+
+    if (clientId.isNotPresent()) {
+      clientId.regenerate();
+    }
+
+    if (!authenticatorExecutor.execute(mqttConnectMessage, clientId)) {
+      throw BadUsernameOrPasswordException.of();
     }
 
     return abortConnection(MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);

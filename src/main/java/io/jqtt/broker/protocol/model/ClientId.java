@@ -22,12 +22,31 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.entrypoint;
+package io.jqtt.broker.protocol.model;
 
-import io.jqtt.broker.protocol.message.MessageHandlerFactory;
-import io.jqtt.exception.JqttExcepion;
-import lombok.NonNull;
+import java.util.UUID;
 
-public interface Entrypoint {
-  void start(final @NonNull MessageHandlerFactory messageHandlerFactory) throws JqttExcepion;
+public final class ClientId {
+
+  private String id;
+
+  private ClientId(String id) {
+    this.id = id;
+  }
+
+  public static ClientId create(String id) {
+    return new ClientId(id);
+  }
+
+  public boolean isNotPresent() {
+    return id == null || id.length() == 0;
+  }
+
+  public void regenerate() {
+    this.id = UUID.randomUUID().toString().replace("-", "");
+  }
+
+  public String toString() {
+    return id;
+  }
 }

@@ -22,12 +22,13 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.entrypoint;
+package io.jqtt.broker.protocol.authenticator;
 
-import io.jqtt.broker.protocol.message.MessageHandlerFactory;
-import io.jqtt.exception.JqttExcepion;
-import lombok.NonNull;
+import io.jqtt.configuration.Configuration;
 
-public interface Entrypoint {
-  void start(final @NonNull MessageHandlerFactory messageHandlerFactory) throws JqttExcepion;
+public interface AuthenticatorFactory {
+
+  Configuration configuration();
+
+  Authenticator create();
 }

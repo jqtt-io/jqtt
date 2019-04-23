@@ -28,5 +28,8 @@ import io.jqtt.broker.protocol.model.ClientId;
 import lombok.NonNull;
 
 public interface Authenticator {
-  Boolean authenticate(final @NonNull ClientId clientId, final @NonNull String username, final @NonNull byte[] password);
+  Boolean authenticate(
+      final @NonNull ClientId clientId,
+      final @NonNull String username,
+      final @NonNull byte[] password);
 }

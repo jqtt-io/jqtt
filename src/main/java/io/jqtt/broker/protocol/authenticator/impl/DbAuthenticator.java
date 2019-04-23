@@ -29,7 +29,9 @@ import io.jqtt.broker.protocol.model.ClientId;
 import lombok.NonNull;
 
 public class DbAuthenticator implements Authenticator {
-    @Override public Boolean authenticate(@NonNull ClientId clientId, @NonNull String username, @NonNull byte[] password) {
-        return null;
-    }
+  @Override
+  public Boolean authenticate(
+      @NonNull ClientId clientId, @NonNull String username, @NonNull byte[] password) {
+    return null;
+  }
 }

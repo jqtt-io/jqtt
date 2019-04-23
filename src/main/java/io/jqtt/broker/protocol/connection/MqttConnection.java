@@ -22,35 +22,41 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.protocol.message.impl;
+package io.jqtt.broker.protocol.connection;
 
 import io.jqtt.broker.protocol.authenticator.Authenticator;
 import io.jqtt.broker.protocol.authenticator.AuthenticatorExecutor;
 import io.jqtt.broker.protocol.exception.BadUsernameOrPasswordException;
 import io.jqtt.broker.protocol.exception.IdentifierRejectionException;
 import io.jqtt.broker.protocol.exception.UnacceptableProtocolVersionException;
-import io.jqtt.broker.protocol.message.MessageHandler;
 import io.jqtt.broker.protocol.model.ClientId;
+import io.jqtt.broker.protocol.session.SessionExecutor;
+import io.jqtt.broker.protocol.session.SessionManager;
 import io.jqtt.configuration.Configuration;
 import io.jqtt.exception.JqttExcepion;
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.mqtt.*;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public final class ConnectMessageHandler implements MessageHandler {
+public final class MqttConnection {
 
   private final AuthenticatorExecutor authenticatorExecutor;
+  private final SessionExecutor sessionExecutor;
 
-  public ConnectMessageHandler(
-      final @NonNull Authenticator authenticator, final @NonNull Configuration configuration) {
+  public MqttConnection(
+      final @NonNull Channel channel,
+      final @NonNull Authenticator authenticator,
+      final @NonNull SessionManager sessionManager,
+      final @NonNull Configuration configuration) {
     this.authenticatorExecutor =
         new AuthenticatorExecutor(authenticator, configuration.getAllowAnonymous());
+    this.sessionExecutor = new SessionExecutor(sessionManager);
   }
 
-  @Override
-  public MqttMessage handle(
+  public MqttMessage connect(
       final @NonNull MqttMessage message, final @NonNull ChannelHandlerContext ctx) {
     final MqttConnectMessage mqttConnectMessage = (MqttConnectMessage) message;
 
@@ -97,6 +103,8 @@ public final class ConnectMessageHandler implements MessageHandler {
     if (!authenticatorExecutor.execute(mqttConnectMessage, clientId)) {
       throw BadUsernameOrPasswordException.of();
     }
+
+    sessionExecutor.execute(mqttConnectMessage, clientId);
 
     return abortConnection(MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);
   }

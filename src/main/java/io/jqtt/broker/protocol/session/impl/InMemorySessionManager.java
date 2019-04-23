@@ -22,6 +22,27 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.protocol.authenticator;
+package io.jqtt.broker.protocol.session.impl;
 
-public class AuthenticationFailed extends Exception {}
+import com.google.common.collect.Maps;
+import io.jqtt.broker.protocol.model.ClientId;
+import io.jqtt.broker.protocol.session.Session;
+import io.jqtt.broker.protocol.session.SessionManager;
+import java.util.concurrent.ConcurrentMap;
+import lombok.NonNull;
+
+public class InMemorySessionManager implements SessionManager {
+
+  private final ConcurrentMap<ClientId, Session> sessions;
+
+  public InMemorySessionManager() {
+    this.sessions = Maps.newConcurrentMap();
+  }
+
+  @Override
+  public Boolean exists(final @NonNull ClientId clientId) {
+    return false;
+  }
+
+  public void create() {}
+}

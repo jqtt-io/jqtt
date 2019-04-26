@@ -24,8 +24,10 @@
 
 package io.jqtt.broker.handler;
 
-import io.jqtt.broker.protocol.message.MessageHandler;
-import io.jqtt.broker.protocol.message.MessageHandlerFactory;
+import io.jqtt.broker.protocol.authenticator.Authenticator;
+import io.jqtt.broker.protocol.connection.MqttConnection;
+import io.jqtt.broker.protocol.session.SessionManager;
+import io.jqtt.configuration.Configuration;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.handler.codec.mqtt.MqttMessage;
@@ -33,10 +35,18 @@ import lombok.NonNull;
 
 public class MqttServerHandler extends ChannelInboundHandlerAdapter {
 
-  private final MessageHandler connectMessageHandler;
+  private final Configuration configuration;
+  private final Authenticator authenticator;
+  private final SessionManager sessionManager;
+  private MqttConnection mqttConnection;
 
-  public MqttServerHandler(final @NonNull MessageHandlerFactory messageHandlerFactory) {
-    this.connectMessageHandler = messageHandlerFactory.fromMessage("CONNECT");
+  public MqttServerHandler(
+      final @NonNull Configuration configuration,
+      final @NonNull Authenticator authenticator,
+      final @NonNull SessionManager sessionManager) {
+    this.configuration = configuration;
+    this.authenticator = authenticator;
+    this.sessionManager = sessionManager;
   }
 
   @Override
@@ -45,12 +55,18 @@ public class MqttServerHandler extends ChannelInboundHandlerAdapter {
 
     switch (message.fixedHeader().messageType()) {
       case CONNECT:
-        ctx.writeAndFlush(connectMessageHandler.handle(message, ctx));
+        ctx.writeAndFlush(mqttConnection.connect(message, ctx));
         break;
       case PINGREQ:
       default:
         break;
     }
+  }
+
+  @Override
+  public void channelActive(ChannelHandlerContext ctx) {
+    mqttConnection =
+        new MqttConnection(ctx.channel(), authenticator, sessionManager, configuration);
   }
 
   @Override

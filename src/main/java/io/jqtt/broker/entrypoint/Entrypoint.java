@@ -24,10 +24,8 @@
 
 package io.jqtt.broker.entrypoint;
 
-import io.jqtt.broker.protocol.message.MessageHandlerFactory;
 import io.jqtt.exception.JqttExcepion;
-import lombok.NonNull;
 
 public interface Entrypoint {
-  void start(final @NonNull MessageHandlerFactory messageHandlerFactory) throws JqttExcepion;
+  void start() throws JqttExcepion;
 }

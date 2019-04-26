@@ -25,7 +25,9 @@
 package io.jqtt.broker.entrypoint;
 
 import io.jqtt.broker.handler.MqttServerHandler;
-import io.jqtt.broker.protocol.message.MessageHandlerFactory;
+import io.jqtt.broker.protocol.authenticator.AuthenticatorFactory;
+import io.jqtt.broker.protocol.session.SessionManager;
+import io.jqtt.configuration.Configuration;
 import io.jqtt.exception.JqttExcepion;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -43,9 +45,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TcpSocketEntrypointImpl implements Entrypoint {
 
+  private final Configuration configuration;
+  private final AuthenticatorFactory authenticatorFactory;
+  private final SessionManager sessionManager;
+
+  public TcpSocketEntrypointImpl(
+      final @NonNull Configuration configuration,
+      final @NonNull AuthenticatorFactory authenticatorFactory,
+      final @NonNull SessionManager sessionManager) {
+
+    this.configuration = configuration;
+    this.authenticatorFactory = authenticatorFactory;
+    this.sessionManager = sessionManager;
+  }
+
   @Override
-  public void start(final @NonNull MessageHandlerFactory messageHandlerFactory)
-      throws JqttExcepion {
+  public void start() throws JqttExcepion {
     final EventLoopGroup bossGroup = new NioEventLoopGroup(1);
     final EventLoopGroup workerGroup = new NioEventLoopGroup();
     final EventLoopGroup handlerGroup = new NioEventLoopGroup();
@@ -66,7 +81,9 @@ public class TcpSocketEntrypointImpl implements Entrypoint {
                   pipeline.addFirst("idleHandler", new IdleStateHandler(0, 0, 2000));
                   pipeline.addLast("encoder", new MqttDecoder());
                   pipeline.addLast("decoder", MqttEncoder.INSTANCE);
-                  pipeline.addLast(new MqttServerHandler(messageHandlerFactory));
+                  pipeline.addLast(
+                      new MqttServerHandler(
+                          configuration, authenticatorFactory.create(), sessionManager));
                 }
               });
 

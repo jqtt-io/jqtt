@@ -24,8 +24,66 @@
 
 package io.jqtt.broker;
 
-import io.jqtt.exception.JqttExcepion;
+import com.esotericsoftware.kryo.NotNull;
+import io.atomix.utils.Managed;
+import io.atomix.utils.concurrent.SingleThreadContext;
+import io.atomix.utils.concurrent.ThreadContext;
+import io.jqtt.broker.entrypoint.TcpSocketService;
+import io.jqtt.cluster.ClusterService;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.extern.slf4j.Slf4j;
 
-public interface Broker {
-  void start() throws JqttExcepion;
+@Slf4j
+@Builder
+@AllArgsConstructor
+public class Broker implements Managed<Void> {
+  private final @NotNull ClusterService clusterService;
+  private final @NotNull TcpSocketService tcpSocketService;
+
+  private final ThreadContext threadContext = new SingleThreadContext("jqtt-broker-%d");
+  private final AtomicBoolean started = new AtomicBoolean();
+
+  @Override
+  public synchronized CompletableFuture<Void> start() {
+    return startServices().thenComposeAsync(v -> completeStartup(), threadContext);
+  }
+
+  @Override
+  public boolean isRunning() {
+    return started.get();
+  }
+
+  @Override
+  public synchronized CompletableFuture<Void> stop() {
+    return stopServices().thenComposeAsync(v -> completeShutdown(), threadContext);
+  }
+
+  private CompletableFuture<Void> completeStartup() {
+    started.set(true);
+    return CompletableFuture.completedFuture(null);
+  }
+
+  private CompletableFuture<Void> completeShutdown() {
+    threadContext.close();
+    started.set(false);
+    return CompletableFuture.completedFuture(null);
+  }
+
+  private CompletableFuture<Void> startServices() {
+    return tcpSocketService
+        .start()
+        .thenComposeAsync(v -> clusterService.start(), threadContext)
+        .thenApply(v -> null);
+  }
+
+  private CompletableFuture<Void> stopServices() {
+    return tcpSocketService
+        .stop()
+        .exceptionally(e -> null)
+        .thenComposeAsync(v -> clusterService.stop(), threadContext)
+        .exceptionally(e -> null);
+  }
 }

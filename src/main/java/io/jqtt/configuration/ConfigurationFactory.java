@@ -33,7 +33,7 @@ import org.cfg4j.source.compose.MergeConfigurationSource;
 import org.cfg4j.source.system.EnvironmentVariablesConfigurationSource;
 import org.cfg4j.source.system.SystemPropertiesConfigurationSource;
 
-public class ConfigurationImplFactory {
+public class ConfigurationFactory {
   public static final String JQTT_PROPERTIES = "jqtt.properties";
 
   public static Configuration create() {
@@ -48,7 +48,7 @@ public class ConfigurationImplFactory {
             .withConfigurationSource(mergeConfigurationSource)
             .build();
 
-    return new ConfigurationImpl(provider);
+    return new CF4JConfiguration(provider);
   }
 
   private static ClasspathConfigurationSource classpathSource() {

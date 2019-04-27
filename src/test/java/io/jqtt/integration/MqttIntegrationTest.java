@@ -30,7 +30,7 @@ import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
 import io.jqtt.broker.Broker;
 import io.jqtt.broker.BrokerImpl;
 import io.jqtt.broker.entrypoint.EntrypointComposition;
-import io.jqtt.broker.entrypoint.TcpSocketEntrypointImpl;
+import io.jqtt.broker.entrypoint.TcpSocketService;
 import io.jqtt.configuration.Configuration;
 import io.jqtt.configuration.ConfigurationImplFactory;
 import org.junit.AfterClass;
@@ -45,7 +45,7 @@ public class MqttIntegrationTest {
   public static void setUp() throws Exception {
     final Configuration configuration = ConfigurationImplFactory.create();
     final EntrypointComposition entrypointComposition =
-        new EntrypointComposition(new TcpSocketEntrypointImpl());
+        new EntrypointComposition(new TcpSocketService());
     final Broker broker = new BrokerImpl(configuration, entrypointComposition);
 
     thread =

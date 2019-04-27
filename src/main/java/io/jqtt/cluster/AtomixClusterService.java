@@ -22,47 +22,48 @@
  * SOFTWARE.
  */
 
-package io.jqtt.configuration;
+package io.jqtt.cluster;
 
-import java.util.NoSuchElementException;
-import org.cfg4j.provider.ConfigurationProvider;
+import io.atomix.core.Atomix;
+import io.atomix.primitive.protocol.PrimitiveProtocol;
+import io.jqtt.cluster.event.service.AtomixEventService;
+import io.jqtt.cluster.event.service.EventService;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
-public class ConfigurationImpl implements Configuration {
-  private final ConfigurationProvider provider;
+public class AtomixClusterService implements ClusterService {
+  private final Atomix atomix;
+  private final PrimitiveProtocol primitiveProtocol;
+  private EventService eventService;
 
-  public ConfigurationImpl(ConfigurationProvider provider) {
-    this.provider = provider;
+  public AtomixClusterService(Atomix atomix, PrimitiveProtocol primitiveProtocol) {
+    this.atomix = atomix;
+    this.primitiveProtocol = primitiveProtocol;
   }
 
   @Override
-  public String getNodeName() {
-    return getProperty(Configuration.NODE_NAME, String.class);
+  public CompletableFuture<ClusterService> start() {
+    return atomix
+        .start()
+        .thenRun(() -> Runtime.getRuntime().addShutdownHook(new Thread(() -> this.stop().join())))
+        .thenApply(v -> this);
   }
 
   @Override
-  public String getAuthenticatorClass() {
-    return getProperty(Configuration.AUTHENTICATOR_CLASS, String.class);
+  public boolean isRunning() {
+    return atomix.isRunning();
   }
 
   @Override
-  public Boolean getAllowAnonymous() {
-    return getProperty(Configuration.ALLOW_ANONYMOUS, Boolean.class);
+  public CompletableFuture<Void> stop() {
+    return atomix.stop();
   }
 
   @Override
-  public String getAuthenticatorFilePath() {
-    return getProperty(Configuration.AUTHENTICATOR_FILE_PATH, String.class);
-  }
-
-  private <T> T getProperty(String propertyName, Class<T> type) {
-    return provider.getProperty(propertyName, type);
-  }
-
-  private <T> T getProperty(String propertyName, Class<T> type, T defaultValue) {
-    try {
-      return provider.getProperty(propertyName, type);
-    } catch (NoSuchElementException | IllegalArgumentException | IllegalStateException exception) {
-      return defaultValue;
+  public EventService eventService() {
+    if (Objects.isNull(eventService)) {
+      eventService = new AtomixEventService(atomix);
     }
+    return eventService;
   }
 }

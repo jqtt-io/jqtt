@@ -22,25 +22,11 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker;
+package io.jqtt.cluster.event.listener;
 
-import io.jqtt.broker.entrypoint.EntrypointComposition;
-import io.jqtt.configuration.Configuration;
-import io.jqtt.exception.JqttExcepion;
-import lombok.extern.slf4j.Slf4j;
+import io.jqtt.cluster.event.MessageWasPublish;
 
-@Slf4j
-public class BrokerImpl implements Broker {
-  private final Configuration configuration;
-  private final EntrypointComposition entrypoints;
-
-  public BrokerImpl(Configuration configuration, EntrypointComposition entrypoints) {
-    this.configuration = configuration;
-    this.entrypoints = entrypoints;
-  }
-
-  @Override
-  public void start() throws JqttExcepion {
-    entrypoints.tcpSocketEntrypoint().start();
-  }
+@FunctionalInterface
+public interface OnSubscribe {
+  void onSubscribe(MessageWasPublish messageWasPublish);
 }

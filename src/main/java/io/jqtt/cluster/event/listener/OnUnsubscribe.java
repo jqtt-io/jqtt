@@ -22,10 +22,11 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.entrypoint;
+package io.jqtt.cluster.event.listener;
 
-import io.jqtt.exception.JqttExcepion;
+import io.jqtt.cluster.event.MessageWasPublish;
 
-public interface Entrypoint {
-  void start() throws JqttExcepion;
+@FunctionalInterface
+public interface OnUnsubscribe {
+  void onUnsubscribe(MessageWasPublish messageWasPublish);
 }

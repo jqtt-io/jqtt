@@ -3,7 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 val jvmDefaultOpts: String by project
 val jvmDebuggerPort: String by project
 
-val nettyVersion = "4.1.34.Final"
+val nettyVersion = "4.1.27.Final"
 val junitVersion = "5.3.2"
 val sfl4jVersion = "1.7.26"
 val logbackVersion = "1.2.3"
@@ -16,6 +16,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "5.0.0"
     id("net.nemerosa.versioning") version "2.8.2"
     id("com.diffplug.gradle.spotless") version "3.20.0"
+    id("com.bmuschko.docker-remote-api") version "4.6.2"
 }
 
 repositories {
@@ -33,12 +34,16 @@ spotless {
 
 dependencies {
     implementation("io.netty:netty-all:$nettyVersion")
+    implementation("io.netty:netty-transport-native-epoll:$nettyVersion")
 
     implementation("ch.qos.logback:logback-core:$logbackVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("org.slf4j:slf4j-api:$sfl4jVersion")
 
-    implementation("io.scalecube:config:$scaleCubeConfigVersion")
+    implementation("io.atomix:atomix:3.1.5")
+    implementation("io.atomix:atomix-raft:3.1.5")
+    implementation("io.atomix:atomix-primary-backup:3.1.5")
+    implementation("io.atomix:atomix-gossip:3.1.5")
     implementation("org.cfg4j:cfg4j-core:4.4.1")
 
     implementation("com.hivemq:hivemq-mqtt-client:1.0.0")
@@ -62,7 +67,7 @@ application {
     applicationDefaultJvmArgs = jvmDefaultOpts
             .replace("\\", "")
             .split(" ")
-            .plus("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${jvmDebuggerPort}")
+            //.plus("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${jvmDebuggerPort}")
 }
 
 val shadowJar = tasks["shadowJar"] as ShadowJar

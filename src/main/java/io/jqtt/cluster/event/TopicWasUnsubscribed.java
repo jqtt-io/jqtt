@@ -22,16 +22,6 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.entrypoint;
+package io.jqtt.cluster.event;
 
-public class EntrypointComposition {
-  private final Entrypoint tcpSocketEntrypoint;
-
-  public EntrypointComposition(Entrypoint tcpSocketEntrypoint) {
-    this.tcpSocketEntrypoint = tcpSocketEntrypoint;
-  }
-
-  public Entrypoint tcpSocketEntrypoint() {
-    return tcpSocketEntrypoint;
-  }
-}
+public class TopicWasUnsubscribed extends BaseEvent {}

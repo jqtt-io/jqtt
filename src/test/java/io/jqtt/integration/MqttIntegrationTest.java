@@ -24,64 +24,7 @@
 
 package io.jqtt.integration;
 
-import com.hivemq.client.internal.mqtt.message.connect.mqtt3.Mqtt3ConnectViewBuilder;
-import com.hivemq.client.mqtt.mqtt3.Mqtt3BlockingClient;
-import com.hivemq.client.mqtt.mqtt3.Mqtt3Client;
-import io.jqtt.broker.Broker;
-import io.jqtt.broker.BrokerImpl;
-import io.jqtt.broker.entrypoint.EntrypointComposition;
-import io.jqtt.broker.entrypoint.TcpSocketService;
-import io.jqtt.configuration.Configuration;
-import io.jqtt.configuration.ConfigurationImplFactory;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
+// TODO: 28.04.19
 public class MqttIntegrationTest {
 
-  private static Thread thread;
-
-  @BeforeClass
-  public static void setUp() throws Exception {
-    final Configuration configuration = ConfigurationImplFactory.create();
-    final EntrypointComposition entrypointComposition =
-        new EntrypointComposition(new TcpSocketService());
-    final Broker broker = new BrokerImpl(configuration, entrypointComposition);
-
-    thread =
-        new Thread(
-            () -> {
-              try {
-                broker.start();
-              } catch (Exception ex) {
-
-              }
-            });
-
-    thread.start();
-
-    Thread.sleep(5000);
-  }
-
-  @Test
-  public void tryServer() throws Exception {
-    final Mqtt3BlockingClient client =
-        Mqtt3Client.builder()
-            .identifier("123123123")
-            .serverHost("localhost")
-            .serverPort(9000)
-            .buildBlocking();
-
-    client.connect(new Mqtt3ConnectViewBuilder.Default().cleanSession(false).build());
-  }
-
-  @AfterClass
-  public static void tearDown() throws Exception {
-    Thread.sleep(1000);
-
-    thread.interrupt();
-    while (thread.isAlive()) {
-      Thread.sleep(250);
-    }
-  }
 }

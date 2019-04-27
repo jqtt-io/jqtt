@@ -25,10 +25,12 @@
 package io.jqtt;
 
 import io.jqtt.broker.Broker;
-import io.jqtt.broker.entrypoint.TcpSocketService;
+import io.jqtt.broker.protocol.authenticator.Authenticator;
 import io.jqtt.broker.protocol.authenticator.AuthenticatorFactory;
 import io.jqtt.broker.protocol.session.SessionManager;
 import io.jqtt.broker.protocol.session.impl.InMemorySessionManager;
+import io.jqtt.broker.service.NettyService;
+import io.jqtt.broker.service.TcpSocketServiceFactory;
 import io.jqtt.cluster.ClusterService;
 import io.jqtt.cluster.factory.ClusterFactory;
 import io.jqtt.configuration.Configuration;
@@ -44,16 +46,26 @@ public class Launcher {
     try {
       final Configuration configuration = ConfigurationFactory.create();
 
-      final Broker broker = Broker.builder()
+      final Broker broker =
+          Broker.builder()
               .clusterService(clusterService(configuration))
-              .tcpSocketService(new TcpSocketService(configuration, initializeAuthenticatorFactory(configuration), initializeSessionManager()))
+              .tcpSocketService(tcpSocketService(configuration))
               .build();
 
       broker.start().join();
 
     } catch (Exception e) {
-      log.error("Start...", e);
+      log.error("Exception during bootstrapping broker.", e);
+      System.exit(1);
     }
+  }
+
+  private static NettyService tcpSocketService(Configuration configuration) {
+    return new TcpSocketServiceFactory(
+            configuration,
+            initializeAuthenticatorFactory(configuration),
+            initializeSessionManager())
+        .create();
   }
 
   private static ClusterService clusterService(Configuration configuration) throws JqttExcepion {
@@ -64,11 +76,12 @@ public class Launcher {
         .create();
   }
 
-  private static AuthenticatorFactory initializeAuthenticatorFactory(Configuration configuration) {
+  private static Authenticator initializeAuthenticatorFactory(Configuration configuration) {
     final @NonNull String authenticatorClass = configuration.getAuthenticatorClass();
 
     return ClassLoader.loadClass(
-        authenticatorClass, AuthenticatorFactory.class, Configuration.class, configuration);
+            authenticatorClass, AuthenticatorFactory.class, Configuration.class, configuration)
+        .create();
   }
 
   private static SessionManager initializeSessionManager() {

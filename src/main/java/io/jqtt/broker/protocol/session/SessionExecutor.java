@@ -24,22 +24,49 @@
 
 package io.jqtt.broker.protocol.session;
 
-import io.jqtt.broker.protocol.model.ClientId;
-import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import static io.jqtt.broker.protocol.connection.MqttConnectionUtils.ackConnection;
 
+import io.jqtt.broker.protocol.connection.MqttConnection;
+import io.jqtt.broker.protocol.model.ClientId;
+import io.netty.handler.codec.mqtt.MqttConnAckMessage;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import java.util.Optional;
+import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SessionExecutor {
 
   private final SessionManager sessionManager;
+  private final MqttConnection mqttConnection;
 
-  public SessionExecutor(SessionManager sessionManager) {
+  public SessionExecutor(SessionManager sessionManager, MqttConnection mqttConnection) {
     this.sessionManager = sessionManager;
+    this.mqttConnection = mqttConnection;
   }
 
-  public void execute(MqttConnectMessage mqttConnectMessage, ClientId clientId) {
-    if (sessionManager.exists(clientId)) {
+  public MqttConnAckMessage execute(
+      final @NonNull ClientId clientId, final @NonNull MqttConnectMessage mqttConnectMessage) {
+    final Session session = Session.create(mqttConnection, clientId, mqttConnectMessage);
 
+    if (sessionManager.exists(session.clientId())) {
+      bindToExistingSession(session.clientId());
     } else {
-
+      storeOrBindToExistingSession(session);
     }
+
+    return ackConnection(false);
+  }
+
+  private void storeOrBindToExistingSession(Session session) {
+    if (sessionManager.store(session)) {
+      log.info("Session stored {}", session.clientId());
+    } else {
+      bindToExistingSession(session.clientId());
+    }
+  }
+
+  private void bindToExistingSession(ClientId clientId) {
+    Optional<Session> previousSession = sessionManager.fetch(clientId);
   }
 }

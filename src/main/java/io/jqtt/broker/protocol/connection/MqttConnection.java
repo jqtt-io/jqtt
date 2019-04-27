@@ -24,6 +24,9 @@
 
 package io.jqtt.broker.protocol.connection;
 
+import static io.jqtt.broker.protocol.connection.MqttConnectionUtils.abortConnection;
+import static io.jqtt.broker.protocol.connection.MqttConnectionUtils.checkProtocolVersion;
+
 import io.jqtt.broker.protocol.authenticator.Authenticator;
 import io.jqtt.broker.protocol.authenticator.AuthenticatorExecutor;
 import io.jqtt.broker.protocol.exception.BadUsernameOrPasswordException;
@@ -53,7 +56,7 @@ public final class MqttConnection {
       final @NonNull Configuration configuration) {
     this.authenticatorExecutor =
         new AuthenticatorExecutor(authenticator, configuration.getAllowAnonymous());
-    this.sessionExecutor = new SessionExecutor(sessionManager);
+    this.sessionExecutor = new SessionExecutor(sessionManager, this);
   }
 
   public MqttMessage connect(
@@ -84,7 +87,7 @@ public final class MqttConnection {
       throw UnacceptableProtocolVersionException.of();
     }
 
-    if (this.checkProtocolVersion(mqttConnectMessage)) {
+    if (checkProtocolVersion(mqttConnectMessage)) {
       throw UnacceptableProtocolVersionException.of();
     }
 
@@ -104,25 +107,6 @@ public final class MqttConnection {
       throw BadUsernameOrPasswordException.of();
     }
 
-    sessionExecutor.execute(mqttConnectMessage, clientId);
-
-    return abortConnection(MqttConnectReturnCode.CONNECTION_REFUSED_UNACCEPTABLE_PROTOCOL_VERSION);
-  }
-
-  private Boolean checkProtocolVersion(MqttConnectMessage mqttConnectMessage) {
-    final int version = mqttConnectMessage.variableHeader().version();
-
-    return version != MqttVersion.MQTT_3_1.protocolLevel()
-        && version != MqttVersion.MQTT_3_1_1.protocolLevel();
-  }
-
-  private MqttConnAckMessage connAck(MqttConnectReturnCode returnCode, boolean sessionPresent) {
-    return new MqttConnAckMessage(
-        new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE, false, 0),
-        new MqttConnAckVariableHeader(returnCode, sessionPresent));
-  }
-
-  private MqttConnAckMessage abortConnection(MqttConnectReturnCode returnCode) {
-    return connAck(returnCode, false);
+    return sessionExecutor.execute(clientId, mqttConnectMessage);
   }
 }

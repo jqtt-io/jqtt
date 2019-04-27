@@ -24,10 +24,15 @@
 
 package io.jqtt.broker.protocol.session.impl;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.ofNullable;
+
 import com.google.common.collect.Maps;
 import io.jqtt.broker.protocol.model.ClientId;
 import io.jqtt.broker.protocol.session.Session;
 import io.jqtt.broker.protocol.session.SessionManager;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentMap;
 import lombok.NonNull;
 
@@ -41,8 +46,22 @@ public class InMemorySessionManager implements SessionManager {
 
   @Override
   public Boolean exists(final @NonNull ClientId clientId) {
-    return false;
+    return sessions.containsKey(clientId);
   }
 
-  public void create() {}
+  @Override
+  public Boolean store(@NonNull Session session) {
+    final Session previousSession = sessions.putIfAbsent(session.clientId(), session);
+
+    return Objects.isNull(previousSession);
+  }
+
+  @Override
+  public Optional<Session> fetch(@NonNull ClientId clientId) {
+    try {
+      return ofNullable(sessions.get(clientId));
+    } catch (ClassCastException | NullPointerException ex) {
+      return empty();
+    }
+  }
 }

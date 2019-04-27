@@ -22,16 +22,31 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.protocol.session;
+package io.jqtt.broker.protocol.connection;
 
-import io.jqtt.broker.protocol.model.ClientId;
-import java.util.Optional;
-import lombok.NonNull;
+import static io.netty.handler.codec.mqtt.MqttConnectReturnCode.CONNECTION_ACCEPTED;
 
-public interface SessionManager {
-  Boolean exists(final @NonNull ClientId clientId);
+import io.netty.handler.codec.mqtt.*;
 
-  Boolean store(final @NonNull Session session);
+public class MqttConnectionUtils {
+  static MqttConnAckMessage connAck(MqttConnectReturnCode returnCode, boolean sessionPresent) {
+    return new MqttConnAckMessage(
+        new MqttFixedHeader(MqttMessageType.CONNACK, false, MqttQoS.AT_MOST_ONCE, false, 0),
+        new MqttConnAckVariableHeader(returnCode, sessionPresent));
+  }
 
-  Optional<Session> fetch(final @NonNull ClientId clientId);
+  static MqttConnAckMessage abortConnection(MqttConnectReturnCode returnCode) {
+    return connAck(returnCode, false);
+  }
+
+  public static MqttConnAckMessage ackConnection(Boolean isSessionAlreadyPresent) {
+    return connAck(CONNECTION_ACCEPTED, isSessionAlreadyPresent);
+  }
+
+  static Boolean checkProtocolVersion(MqttConnectMessage mqttConnectMessage) {
+    final int version = mqttConnectMessage.variableHeader().version();
+
+    return version != MqttVersion.MQTT_3_1.protocolLevel()
+        && version != MqttVersion.MQTT_3_1_1.protocolLevel();
+  }
 }

@@ -24,16 +24,56 @@
 
 package io.jqtt.broker.protocol.session;
 
+import io.jqtt.broker.protocol.connection.MqttConnection;
 import io.jqtt.broker.protocol.model.ClientId;
+import io.netty.handler.codec.mqtt.MqttConnectMessage;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.NonNull;
 
-public class Session {
+public final class Session {
 
   private final ClientId clientId;
   private final Boolean isClean;
+  private final MqttConnection mqttConnection;
+  private final AtomicReference<Status> status = new AtomicReference<>(Status.DISCONNECTED);
 
-  public Session(final @NonNull ClientId clientId, final @NonNull Boolean isClean) {
+  private Session(
+      final @NonNull ClientId clientId,
+      final @NonNull Boolean isClean,
+      final @NonNull MqttConnection mqttConnection) {
     this.clientId = clientId;
     this.isClean = isClean;
+    this.mqttConnection = mqttConnection;
+
+    this.connect();
+  }
+
+  public static Session create(
+      final @NonNull MqttConnection mqttConnection,
+      final @NonNull ClientId clientId,
+      final @NonNull MqttConnectMessage mqttConnectMessage) {
+
+    return new Session(
+        clientId, mqttConnectMessage.variableHeader().isCleanSession(), mqttConnection);
+  }
+
+  private void connect() {
+    status.compareAndSet(Status.DISCONNECTED, Status.CONNECTED);
+  }
+
+  public ClientId clientId() {
+    return clientId;
+  }
+
+  public Boolean isClean() {
+    return isClean;
+  }
+
+  public boolean disconnected() {
+    return status.get() == Status.DISCONNECTED;
+  }
+
+  public boolean connected() {
+    return status.get() == Status.CONNECTED;
   }
 }

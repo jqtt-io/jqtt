@@ -24,14 +24,9 @@
 
 package io.jqtt.broker.protocol.session;
 
-import io.jqtt.broker.protocol.model.ClientId;
-import java.util.Optional;
-import lombok.NonNull;
-
-public interface SessionManager {
-  Boolean exists(final @NonNull ClientId clientId);
-
-  Boolean store(final @NonNull Session session);
-
-  Optional<Session> fetch(final @NonNull ClientId clientId);
+public class SessionState {
+  public static Boolean isNewSessionIsCleanAndPreviosDisconnected(
+      Session newSession, Session previous) {
+    return newSession.isClean() && previous.disconnected();
+  }
 }

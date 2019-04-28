@@ -28,7 +28,7 @@ import com.esotericsoftware.kryo.NotNull;
 import io.atomix.utils.Managed;
 import io.atomix.utils.concurrent.SingleThreadContext;
 import io.atomix.utils.concurrent.ThreadContext;
-import io.jqtt.broker.entrypoint.TcpSocketService;
+import io.jqtt.broker.service.NettyService;
 import io.jqtt.cluster.ClusterService;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,7 +41,7 @@ import lombok.extern.slf4j.Slf4j;
 @AllArgsConstructor
 public class Broker implements Managed<Void> {
   private final @NotNull ClusterService clusterService;
-  private final @NotNull TcpSocketService tcpSocketService;
+  private final @NotNull NettyService tcpSocketService;
 
   private final ThreadContext threadContext = new SingleThreadContext("jqtt-broker-%d");
   private final AtomicBoolean started = new AtomicBoolean();
@@ -75,6 +75,7 @@ public class Broker implements Managed<Void> {
   private CompletableFuture<Void> startServices() {
     return tcpSocketService
         .start()
+        .thenRun(() -> Runtime.getRuntime().addShutdownHook(new Thread(() -> this.stop().join())))
         .thenComposeAsync(v -> clusterService.start(), threadContext)
         .thenApply(v -> null);
   }

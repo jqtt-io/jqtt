@@ -62,7 +62,7 @@ public class AtomixClusterFactory implements ClusterFactory {
 
     AtomixBuilder builder =
         Atomix.builder()
-            .withShutdownHookEnabled()
+            .withShutdownHook(false)
             .withMulticastEnabled(
                 configuration.clusterAtomixDiscovery().equalsIgnoreCase(DISCOVERY_MULTICAST))
             .withClusterId(configuration.clusterId())

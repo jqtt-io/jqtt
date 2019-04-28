@@ -26,7 +26,11 @@ package io.jqtt.cluster.event;
 
 import java.time.Instant;
 import java.util.UUID;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
+@EqualsAndHashCode(of = {"id", "type"})
+@ToString
 public abstract class BaseEvent implements Event {
   protected UUID id;
   protected String type;

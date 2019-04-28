@@ -43,10 +43,7 @@ public class AtomixClusterService implements ClusterService {
 
   @Override
   public CompletableFuture<ClusterService> start() {
-    return atomix
-        .start()
-        .thenRun(() -> Runtime.getRuntime().addShutdownHook(new Thread(() -> this.stop().join())))
-        .thenApply(v -> this);
+    return atomix.start().thenApply(v -> this);
   }
 
   @Override

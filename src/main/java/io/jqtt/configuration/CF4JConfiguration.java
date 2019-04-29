@@ -26,6 +26,8 @@ package io.jqtt.configuration;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import io.atomix.utils.net.Address;
 import org.cfg4j.provider.ConfigurationProvider;
 
 public class CF4JConfiguration implements Configuration {
@@ -33,16 +35,29 @@ public class CF4JConfiguration implements Configuration {
 
   private final ConfigurationProvider provider;
 
-  private String nodeId;
+  private String memberId;
 
   public CF4JConfiguration(ConfigurationProvider provider) {
     this.provider = provider;
-    resolveNodeId();
+    resolveMemberId();
+  }
+
+  @Override
+  public boolean isServiceTcpEnabled() {
+    return getProperty(SERVICE_TCP_ENABLED, Boolean.class);
+  }
+
+  @Override
+  public Address serviceTcpAddress() {
+    return Address.from(
+            getProperty(SERVICE_TCP_HOST, String.class),
+            getProperty(SERVICE_TCP_PORT, Integer.class)
+    );
   }
 
   @Override
   public String clusterMemberId() {
-    return nodeId;
+    return memberId;
   }
 
   @Override
@@ -112,10 +127,10 @@ public class CF4JConfiguration implements Configuration {
     }
   }
 
-  private void resolveNodeId() {
-    this.nodeId = getProperty(Configuration.CLUSTER_MEMBER_ID, String.class);
-    if (this.nodeId.equalsIgnoreCase(UUID)) {
-      this.nodeId = java.util.UUID.randomUUID().toString();
+  private void resolveMemberId() {
+    this.memberId = getProperty(Configuration.CLUSTER_MEMBER_ID, String.class);
+    if (this.memberId.equalsIgnoreCase(UUID)) {
+      this.memberId = java.util.UUID.randomUUID().toString();
     }
   }
 }

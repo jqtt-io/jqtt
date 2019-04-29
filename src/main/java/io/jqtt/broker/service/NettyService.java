@@ -68,7 +68,9 @@ public class NettyService implements Managed {
 
     initEventLoopGroup();
 
-    return bootstrapServer().thenRun(() -> started.set(true)).thenApply(v -> this);
+    return bootstrapServer()
+            .thenRun(() -> started.set(true))
+            .thenApply(v -> this);
   }
 
   @Override

@@ -24,7 +24,6 @@
 
 package io.jqtt.broker.service;
 
-import io.atomix.utils.net.Address;
 import io.jqtt.broker.handler.MqttServerHandler;
 import io.jqtt.broker.protocol.authenticator.Authenticator;
 import io.jqtt.broker.protocol.session.SessionManager;
@@ -44,7 +43,7 @@ public class TcpSocketServiceFactory {
   private final SessionManager sessionManager;
 
   public NettyService create() {
-    return new NettyService(channelInitializer(), Address.from("127.0.0.1:9000"));
+    return new NettyService(channelInitializer(), configuration.serviceTcpAddress());
   }
 
   private ChannelInitializer channelInitializer() {

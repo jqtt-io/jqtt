@@ -24,6 +24,7 @@ plugins {
     id("net.nemerosa.versioning") version "2.8.2"
     id("com.diffplug.gradle.spotless") version "3.20.0"
     id("com.bmuschko.docker-remote-api") version "4.6.2"
+    id("com.palantir.graal") version "0.3.0-25-g65a27de"
 }
 
 repositories {
@@ -73,6 +74,12 @@ docker {
     }
 }
 
+graal {
+    mainClass("io.jqtt.Launcher")
+    outputName("jqtt")
+    option("--enable-http")
+}
+
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }
@@ -82,7 +89,7 @@ application {
     applicationDefaultJvmArgs = jvmDefaultOpts
             .replace("\\", "")
             .split(" ")
-            .plus("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${jvmDebuggerPort}")
+            //.plus("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=${jvmDebuggerPort}")
 }
 
 tasks {

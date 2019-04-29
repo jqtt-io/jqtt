@@ -36,7 +36,7 @@ import io.atomix.protocols.backup.partition.PrimaryBackupPartitionGroup;
 import io.atomix.protocols.gossip.AntiEntropyProtocol;
 import io.jqtt.cluster.AtomixClusterService;
 import io.jqtt.cluster.ClusterService;
-import io.jqtt.cluster.factory.atomix.Utils;
+import io.jqtt.cluster.factory.atomix.Discovery;
 import io.jqtt.configuration.Configuration;
 import io.jqtt.exception.ClusterException;
 
@@ -98,9 +98,9 @@ public class AtomixClusterFactory implements ClusterFactory {
     NodeDiscoveryProvider nodeDiscoveryProvider;
 
     if (discovery.equalsIgnoreCase(DISCOVERY_MULTICAST)) {
-      nodeDiscoveryProvider = Utils.multicastDiscoveryProvider(configuration);
+      nodeDiscoveryProvider = Discovery.multicastDiscoveryProvider(configuration);
     } else if (discovery.equalsIgnoreCase(DISCOVERY_BOOTSTRAP)) {
-      nodeDiscoveryProvider = Utils.bootstrapDiscoveryProvider(configuration);
+      nodeDiscoveryProvider = Discovery.bootstrapDiscoveryProvider(configuration);
     } else {
       throw new ClusterException(String.format("Unknown Utils provider %s.", discovery));
     }

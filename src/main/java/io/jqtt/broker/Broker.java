@@ -48,7 +48,8 @@ public class Broker implements Managed<Void> {
 
   @Override
   public synchronized CompletableFuture<Void> start() {
-    return startServices().thenComposeAsync(v -> completeStartup(), threadContext);
+    return startServices()
+            .thenComposeAsync(v -> completeStartup(), threadContext);
   }
 
   @Override
@@ -75,8 +76,8 @@ public class Broker implements Managed<Void> {
   private CompletableFuture<Void> startServices() {
     return tcpSocketService
         .start()
-        .thenRun(() -> Runtime.getRuntime().addShutdownHook(new Thread(() -> this.stop().join())))
         .thenComposeAsync(v -> clusterService.start(), threadContext)
+        .thenRun(() -> Runtime.getRuntime().addShutdownHook(new Thread(() -> this.stop().join())))
         .thenApply(v -> null);
   }
 

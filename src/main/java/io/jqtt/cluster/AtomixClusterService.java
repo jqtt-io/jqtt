@@ -26,15 +26,22 @@ package io.jqtt.cluster;
 
 import io.atomix.core.Atomix;
 import io.atomix.primitive.protocol.PrimitiveProtocol;
+import io.atomix.utils.concurrent.SingleThreadContext;
+import io.atomix.utils.concurrent.ThreadContext;
 import io.jqtt.cluster.event.service.AtomixEventService;
 import io.jqtt.cluster.event.service.EventService;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+@Slf4j
 public class AtomixClusterService implements ClusterService {
   private final Atomix atomix;
   private final PrimitiveProtocol primitiveProtocol;
   private EventService eventService;
+
+  private final ThreadContext threadContext = new SingleThreadContext("jqtt-broker-%d");
 
   public AtomixClusterService(Atomix atomix, PrimitiveProtocol primitiveProtocol) {
     this.atomix = atomix;
@@ -43,7 +50,8 @@ public class AtomixClusterService implements ClusterService {
 
   @Override
   public CompletableFuture<ClusterService> start() {
-    return atomix.start().thenApply(v -> this);
+    return atomix.start()
+            .applyToEitherAsync(setupListeners(), v -> this, threadContext);
   }
 
   @Override
@@ -62,5 +70,21 @@ public class AtomixClusterService implements ClusterService {
       eventService = new AtomixEventService(atomix);
     }
     return eventService;
+  }
+
+  private CompletableFuture<Void> setupListeners() {
+    return CompletableFuture.supplyAsync(() -> {
+      atomix.getMembershipService().addListener(event -> {
+        switch (event.type()) {
+        case MEMBER_ADDED:
+          log.info(event.subject().id() + " joined the cluster");
+          break;
+        case MEMBER_REMOVED:
+          log.info(event.subject().id() + " left the cluster");
+          break;
+        }
+      });
+      return null;
+    });
   }
 }

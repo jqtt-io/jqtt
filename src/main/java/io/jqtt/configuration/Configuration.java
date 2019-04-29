@@ -24,9 +24,14 @@
 
 package io.jqtt.configuration;
 
+import io.atomix.utils.net.Address;
+
 import java.util.Set;
 
 public interface Configuration {
+  public static final String SERVICE_TCP_ENABLED = "jqtt.service.tcp.enabled";
+  public static final String SERVICE_TCP_HOST = "jqtt.service.tcp.host";
+  public static final String SERVICE_TCP_PORT = "jqtt.service.tcp.port";
   public static final String CLUSTER_MEMBER_ID = "jqtt.cluster.member.id";
   public static final String CLUSTER_CLASS = "jqtt.cluster.class";
   public static final String CLUSTER_ID = "jqtt.cluster.id";
@@ -36,10 +41,13 @@ public interface Configuration {
   public static final String CLUSTER_ATOMIX_DISCOVERY = "jqtt.cluster.atomix.discovery";
   public static final String CLUSTER_ATOMIX_DISCOVERY_BOOTSTRAP_NODES =
       "jqtt.cluster.atomix.discovery.bootstrap.nodes";
-  public static final String NODE_NAME = "jqtt.node.name";
   public static final String AUTHENTICATOR_CLASS = "jqtt.authenticator.class";
   public static final String ALLOW_ANONYMOUS = "jqtt.authenticator.allow_anonymous";
   public static final String AUTHENTICATOR_FILE_PATH = "jqtt.authenticator.file.path";
+
+  boolean isServiceTcpEnabled();
+
+  Address serviceTcpAddress();
 
   String clusterMemberId();
 

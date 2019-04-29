@@ -33,12 +33,14 @@ import java.util.Collection;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
-public class Utils {
+public class Discovery {
   public static final Pattern nodePattern =
       Pattern.compile("(?<memberId>.+)@(?<address>.+):(?<port>\\d+)");
 
   public static NodeDiscoveryProvider multicastDiscoveryProvider(Configuration configuration) {
-    return MulticastDiscoveryProvider.builder().build();
+    return MulticastDiscoveryProvider
+            .builder()
+            .build();
   }
 
   public static NodeDiscoveryProvider bootstrapDiscoveryProvider(Configuration configuration) {

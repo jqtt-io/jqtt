@@ -22,30 +22,36 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.protocol.model;
+package io.jqtt.broker.service;
 
-import java.io.Serializable;
-import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import io.atomix.utils.Managed;
+import io.atomix.utils.net.Address;
+import java.util.concurrent.CompletableFuture;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-@ToString(onlyExplicitlyIncluded = true, includeFieldNames = false)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public final class ClientId implements Serializable {
+@Slf4j
+@AllArgsConstructor
+public class DisabledService implements Managed {
+  private final String name;
+  private final Address address;
 
-  private static final long serialVersionUID = -7616449102431864312L;
+  @Override
+  public CompletableFuture start() {
+    log.info("Service {} {} is disabled. Nothing to start.", name, address);
 
-  @ToString.Include @EqualsAndHashCode.Include private String id;
-
-  public ClientId(String id) {
-    this.id = id;
+    return CompletableFuture.completedFuture(null);
   }
 
-  public boolean isNotPresent() {
-    return id == null || id.length() == 0;
+  @Override
+  public boolean isRunning() {
+    return false;
   }
 
-  public void regenerate() {
-    this.id = UUID.randomUUID().toString().replace("-", "");
+  @Override
+  public CompletableFuture<Void> stop() {
+    log.info("Service {} {} is disabled. Nothing to stop.", name, address);
+
+    return CompletableFuture.completedFuture(null);
   }
 }

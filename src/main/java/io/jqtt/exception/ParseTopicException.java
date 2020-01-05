@@ -22,30 +22,10 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.protocol.model;
+package io.jqtt.exception;
 
-import java.io.Serializable;
-import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
-
-@ToString(onlyExplicitlyIncluded = true, includeFieldNames = false)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public final class ClientId implements Serializable {
-
-  private static final long serialVersionUID = -7616449102431864312L;
-
-  @ToString.Include @EqualsAndHashCode.Include private String id;
-
-  public ClientId(String id) {
-    this.id = id;
-  }
-
-  public boolean isNotPresent() {
-    return id == null || id.length() == 0;
-  }
-
-  public void regenerate() {
-    this.id = UUID.randomUUID().toString().replace("-", "");
+public class ParseTopicException extends JqttExcepion {
+  public ParseTopicException(String message) {
+    super(message);
   }
 }

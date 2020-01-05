@@ -24,10 +24,7 @@
 
 package io.jqtt.configuration;
 
-import java.util.*;
-import java.util.stream.Collectors;
-
-import io.atomix.utils.net.Address;
+import java.util.NoSuchElementException;
 import org.cfg4j.provider.ConfigurationProvider;
 
 public class CF4JConfiguration implements Configuration {
@@ -40,77 +37,6 @@ public class CF4JConfiguration implements Configuration {
   public CF4JConfiguration(ConfigurationProvider provider) {
     this.provider = provider;
     resolveMemberId();
-  }
-
-  @Override
-  public boolean isServiceTcpEnabled() {
-    return getProperty(SERVICE_TCP_ENABLED, Boolean.class);
-  }
-
-  @Override
-  public Address serviceTcpAddress() {
-    return Address.from(
-            getProperty(SERVICE_TCP_HOST, String.class),
-            getProperty(SERVICE_TCP_PORT, Integer.class)
-    );
-  }
-
-  @Override
-  public String clusterMemberId() {
-    return memberId;
-  }
-
-  @Override
-  public String clusterClass() {
-    return getProperty(CLUSTER_CLASS, String.class);
-  }
-
-  @Override
-  public String clusterAtomixMembership() {
-    return getProperty(CLUSTER_ATOMIX_MEMBERSHIP, String.class);
-  }
-
-  @Override
-  public String clusterAtomixDiscovery() {
-    return getProperty(CLUSTER_ATOMIX_DISCOVERY, String.class);
-  }
-
-  @Override
-  public String clusterId() {
-    return getProperty(CLUSTER_ID, String.class);
-  }
-
-  @Override
-  public String clusterMemberHost() {
-    return getProperty(CLUSTER_MEMBER_HOST, String.class);
-  }
-
-  @Override
-  public int clusterMemberPort() {
-    return getProperty(CLUSTER_MEMBER_PORT, Integer.class);
-  }
-
-  @Override
-  public Set<String> clusterAtomixDiscoveryBootstrapNodes() {
-    return Arrays.stream(
-            getProperty(CLUSTER_ATOMIX_DISCOVERY_BOOTSTRAP_NODES, String.class).split(","))
-        .map(String::trim)
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public String getAuthenticatorClass() {
-    return getProperty(Configuration.AUTHENTICATOR_CLASS, String.class);
-  }
-
-  @Override
-  public Boolean getAllowAnonymous() {
-    return getProperty(Configuration.ALLOW_ANONYMOUS, Boolean.class);
-  }
-
-  @Override
-  public String getAuthenticatorFilePath() {
-    return getProperty(Configuration.AUTHENTICATOR_FILE_PATH, String.class);
   }
 
   @Override

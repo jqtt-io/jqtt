@@ -24,32 +24,25 @@
 
 package io.jqtt.broker;
 
-import com.esotericsoftware.kryo.NotNull;
 import io.atomix.utils.Managed;
 import io.atomix.utils.concurrent.SingleThreadContext;
 import io.atomix.utils.concurrent.ThreadContext;
-import io.jqtt.broker.service.NettyService;
-import io.jqtt.cluster.ClusterService;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Builder
-@AllArgsConstructor
 public class Broker implements Managed<Void> {
-  private final @NotNull ClusterService clusterService;
-  private final @NotNull NettyService tcpSocketService;
+  private final Managed tcpSocketService;
 
   private final ThreadContext threadContext = new SingleThreadContext("jqtt-broker-%d");
   private final AtomicBoolean started = new AtomicBoolean();
 
   @Override
   public synchronized CompletableFuture<Void> start() {
-    return startServices()
-            .thenComposeAsync(v -> completeStartup(), threadContext);
+    return startServices().thenComposeAsync(v -> completeStartup(), threadContext);
   }
 
   @Override
@@ -76,16 +69,11 @@ public class Broker implements Managed<Void> {
   private CompletableFuture<Void> startServices() {
     return tcpSocketService
         .start()
-        .thenComposeAsync(v -> clusterService.start(), threadContext)
         .thenRun(() -> Runtime.getRuntime().addShutdownHook(new Thread(() -> this.stop().join())))
         .thenApply(v -> null);
   }
 
   private CompletableFuture<Void> stopServices() {
-    return tcpSocketService
-        .stop()
-        .exceptionally(e -> null)
-        .thenComposeAsync(v -> clusterService.stop(), threadContext)
-        .exceptionally(e -> null);
+    return tcpSocketService.stop().exceptionally(e -> null);
   }
 }

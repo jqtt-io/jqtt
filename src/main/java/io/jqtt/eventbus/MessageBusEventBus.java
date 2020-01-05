@@ -22,30 +22,27 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.protocol.model;
+package io.jqtt.eventbus;
 
-import java.io.Serializable;
-import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import dorkbox.messageBus.MessageBus;
+import lombok.AllArgsConstructor;
 
-@ToString(onlyExplicitlyIncluded = true, includeFieldNames = false)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public final class ClientId implements Serializable {
+@AllArgsConstructor
+public class MessageBusEventBus implements EventBus {
+  private final MessageBus messageBus;
 
-  private static final long serialVersionUID = -7616449102431864312L;
-
-  @ToString.Include @EqualsAndHashCode.Include private String id;
-
-  public ClientId(String id) {
-    this.id = id;
+  @Override
+  public void publish(Object event) {
+    messageBus.publishAsync(event);
   }
 
-  public boolean isNotPresent() {
-    return id == null || id.length() == 0;
+  @Override
+  public void subscribe(Object listener) {
+    messageBus.subscribe(listener);
   }
 
-  public void regenerate() {
-    this.id = UUID.randomUUID().toString().replace("-", "");
+  @Override
+  public void unsubscribe(Object listener) {
+    messageBus.unsubscribe(listener);
   }
 }

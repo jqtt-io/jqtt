@@ -2,6 +2,7 @@ import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.api.tasks.wrapper.Wrapper.DistributionType;
 
 val nettyVersion = "4.1.35.Final"
 val junitVersion = "5.3.2"
@@ -20,11 +21,13 @@ val jvmDebuggerPort: String by project
 plugins {
     java
     application
-    id("com.github.johnrengelman.shadow") version "5.0.0"
+    idea
+    id("com.github.johnrengelman.shadow") version "5.1.0"
     id("net.nemerosa.versioning") version "2.8.2"
-    id("com.diffplug.gradle.spotless") version "3.20.0"
-    id("com.bmuschko.docker-remote-api") version "4.6.2"
-    id("com.palantir.graal") version "0.3.0-25-g65a27de"
+    id("com.diffplug.gradle.spotless") version "3.24.2"
+    id("com.bmuschko.docker-remote-api") version "5.0.0"
+    id("com.palantir.graal") version "0.4.0"
+    id("net.ltgt.apt-idea") version "0.21"
 }
 
 repositories {
@@ -52,18 +55,28 @@ dependencies {
     implementation("io.atomix:atomix-raft:3.1.5")
     implementation("io.atomix:atomix-primary-backup:3.1.5")
     implementation("io.atomix:atomix-gossip:3.1.5")
+    
     implementation("org.cfg4j:cfg4j-core:4.4.1")
 
     implementation("com.hivemq:hivemq-mqtt-client:1.0.0")
     implementation("com.google.guava:guava:27.1-jre")
     implementation("commons-codec:commons-codec:1.8")
 
+    implementation("com.dorkbox:MessageBus:2.1")
+
+    implementation("com.google.dagger:dagger:2.24")
+    annotationProcessor("com.google.dagger:dagger-compiler:2.24")
+
     compileOnly("org.projectlombok:lombok:$lombokVersion")
     testCompileOnly("org.projectlombok:lombok:$lombokVersion")
     annotationProcessor("org.projectlombok:lombok:$lombokVersion")
     testAnnotationProcessor("org.projectlombok:lombok:$lombokVersion")
-    
-    testImplementation("junit:junit:4.12")
+
+    testImplementation("org.assertj:assertj-core:3.12.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:$junitVersion")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:$junitVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+    testImplementation("org.assertj:assertj-core:3.11.1")
 }
 
 docker {
@@ -144,7 +157,13 @@ tasks.create("dockerPushImage", DockerPushImage::class) {
     description = "Push image to registry (tag is resolved base on versioning plugin)."
 }
 
+tasks {
+    "wrapper"(Wrapper::class) {
+        gradleVersion = "5.6.2"
+        distributionType = DistributionType.ALL
+    }
+}
+
 fun getConfigurationProperty(envVar: String, sysProp: String): String {
     return System.getenv(envVar) ?: project.findProperty(sysProp).toString()
 }
-

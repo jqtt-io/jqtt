@@ -25,6 +25,4 @@
 package io.jqtt.integration;
 
 // TODO: 28.04.19
-public class MqttIntegrationTest {
-
-}
+public class MqttIntegrationTest {}

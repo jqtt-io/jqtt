@@ -22,30 +22,33 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.protocol.model;
+package io.jqtt.broker.service;
 
-import java.io.Serializable;
-import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelInitializer;
+import io.netty.channel.ChannelPipeline;
+import io.netty.handler.codec.mqtt.MqttDecoder;
+import io.netty.handler.codec.mqtt.MqttEncoder;
+import io.netty.handler.timeout.IdleStateHandler;
 
-@ToString(onlyExplicitlyIncluded = true, includeFieldNames = false)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public final class ClientId implements Serializable {
+public class ChannelInitializerFactory {
+  private final IdleStateHandler idleStateHandler;
 
-  private static final long serialVersionUID = -7616449102431864312L;
-
-  @ToString.Include @EqualsAndHashCode.Include private String id;
-
-  public ClientId(String id) {
-    this.id = id;
+  public ChannelInitializerFactory(IdleStateHandler idleStateHandler) {
+    this.idleStateHandler = idleStateHandler;
   }
 
-  public boolean isNotPresent() {
-    return id == null || id.length() == 0;
-  }
+  public ChannelInitializer create() {
+    return new ChannelInitializer() {
+      @Override
+      protected void initChannel(Channel ch) throws Exception {
+        final ChannelPipeline pipeline = ch.pipeline();
 
-  public void regenerate() {
-    this.id = UUID.randomUUID().toString().replace("-", "");
+        pipeline.addFirst("idleHandler", idleStateHandler);
+        pipeline.addLast("encoder", new MqttDecoder());
+        pipeline.addLast("decoder", MqttEncoder.INSTANCE);
+        pipeline.addLast("handler", new MqttHandler());
+      }
+    };
   }
 }

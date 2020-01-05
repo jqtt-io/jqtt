@@ -22,30 +22,14 @@
  * SOFTWARE.
  */
 
-package io.jqtt.broker.protocol.model;
+package io.jqtt.dagger;
 
-import java.io.Serializable;
-import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import dagger.Component;
+import io.jqtt.broker.Broker;
+import javax.inject.Singleton;
 
-@ToString(onlyExplicitlyIncluded = true, includeFieldNames = false)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public final class ClientId implements Serializable {
-
-  private static final long serialVersionUID = -7616449102431864312L;
-
-  @ToString.Include @EqualsAndHashCode.Include private String id;
-
-  public ClientId(String id) {
-    this.id = id;
-  }
-
-  public boolean isNotPresent() {
-    return id == null || id.length() == 0;
-  }
-
-  public void regenerate() {
-    this.id = UUID.randomUUID().toString().replace("-", "");
-  }
+@Singleton
+@Component(modules = {ConfigurationModule.class, BrokerModule.class})
+public interface JqttComponent {
+  Broker broker();
 }

@@ -24,28 +24,29 @@
 
 package io.jqtt.broker.protocol.model;
 
-import java.io.Serializable;
-import java.util.UUID;
-import lombok.EqualsAndHashCode;
-import lombok.ToString;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-@ToString(onlyExplicitlyIncluded = true, includeFieldNames = false)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-public final class ClientId implements Serializable {
+import io.jqtt.exception.ParseTopicException;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
-  private static final long serialVersionUID = -7616449102431864312L;
-
-  @ToString.Include @EqualsAndHashCode.Include private String id;
-
-  public ClientId(String id) {
-    this.id = id;
+public class TopicTest {
+  @Test
+  public void shouldRejectNullTopic() {
+    assertThrows(ParseTopicException.class, () -> new Topic(null));
   }
 
-  public boolean isNotPresent() {
-    return id == null || id.length() == 0;
+  @ParameterizedTest(name = "run #{index} with [{arguments}]")
+  @ValueSource(strings = {"", "topic1#/", "topic1+/", "topic1//", "+"})
+  void shouldRejectInvalidTopic(String topic) {
+    assertThrows(ParseTopicException.class, () -> new Topic(topic));
   }
 
-  public void regenerate() {
-    this.id = UUID.randomUUID().toString().replace("-", "");
+  @ParameterizedTest(name = "run #{index} with [{arguments}]")
+  @ValueSource(strings = {"sendor/+/celsius/#"})
+  void shouldAcceptInvalidTopic(String topic) throws ParseTopicException {
+    assertThat(new Topic(topic).toString()).isEqualTo("Topic(#)");
   }
 }
